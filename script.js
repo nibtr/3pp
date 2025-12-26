@@ -4,7 +4,7 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
 const BACKGROUND = "#000000";
-const FOREGROUND = "#009dff";
+const FOREGROUND = "#00d7ff";
 
 /** Field of view, in degree */
 const FOV = (66 * Math.PI) / 180;
@@ -130,6 +130,14 @@ function transformVertex(v) {
   return toScreen(projected);
 }
 
+function scaleVertices(vertices, factor = 0.25) {
+  return vertices.map((v) => ({
+    x: v.x * factor,
+    y: v.y * factor,
+    z: v.z * factor,
+  }));
+}
+
 /** Draw a line from p1 to p2 */
 function line(p1, p2, color = FOREGROUND, width = 3) {
   ctx.strokeStyle = color;
@@ -152,7 +160,7 @@ function frame(time) {
 
   clear();
 
-  const tvs = vertices.map(transformVertex);
+  const tvs = scaleVertices(vertices).map(transformVertex);
 
   for (const e of edges) {
     for (let i = 0; i < e.length; i++) {
