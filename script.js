@@ -130,7 +130,7 @@ function transformVertex(v) {
   return toScreen(projected);
 }
 
-function scaleVertices(vertices, factor = 0.25) {
+function scaleVertices(vertices, factor = 1) {
   return vertices.map((v) => ({
     x: v.x * factor,
     y: v.y * factor,
