@@ -10,6 +10,10 @@ const FOREGROUND = "#17ebd9";
 const FOV = (66 * Math.PI) / 180;
 const FOCAL_LENGTH = 1 / Math.tan(FOV / 2);
 
+let lastTime = 0;
+let angle = 0;
+let dz = 1;
+
 function resize() {
   const dpr = window.devicePixelRatio || 1;
 
@@ -24,10 +28,6 @@ function resize() {
 
 window.addEventListener("resize", resize);
 resize();
-
-let lastTime = 0;
-let angle = 0;
-let dz = 1;
 
 /** Clear the screen */
 function clear() {
@@ -56,8 +56,9 @@ function toScreen(p) {
 
 /** Projects the 3d coordinate to a 2d coordinate */
 function project({ x, y, z }) {
-  if (z <= 0.001) return null; // near camera
   const aspect = canvas.width / canvas.height;
+
+  if (z <= 0.001) return null; // near camera
   return {
     x: ((x / z) * FOCAL_LENGTH) / aspect,
     y: (y / z) * FOCAL_LENGTH,
