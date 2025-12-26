@@ -20,6 +20,16 @@ projection, or the focal length.
 - Scroll to zoom in/out
 - Drag to rotate
 
+## Run
+
+You can install `serve` and run the project locally
+
+```bash
+npm install -g serve
+```
+
+or visit [here](https://nibtr.github.io/3pp)
+
 ## References
 
 - https://www.cse.unr.edu/~bebis/CS791E/Notes/PerspectiveProjection.pdf
