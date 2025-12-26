@@ -10,24 +10,28 @@ const FOREGROUND = "#17ebd9";
 const FOV = (66 * Math.PI) / 180;
 const FOCAL_LENGTH = 1 / Math.tan(FOV / 2);
 
+const SCROLL_SENSITIVITY = 0.001;
+const MIN_DZ = 0.5;
+const MAX_DZ = 8;
+const ZOOM_SPEED = 5;
+
 let lastTime = 0;
 let angle = 0;
-let dz = 1;
+let cameraDz = 2;
+let dzTarget = cameraDz;
 
 function resize() {
-  const dpr = window.devicePixelRatio || 1;
-
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
-
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
-
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 
-window.addEventListener("resize", resize);
+window.addEventListener("resize", () => resize);
 resize();
+
+addEventListener("wheel", (event) => {
+  dzTarget += event.deltaY * SCROLL_SENSITIVITY;
+  dzTarget = Math.min(MAX_DZ, Math.max(MIN_DZ, dzTarget));
+});
 
 /** Clear the screen */
 function clear() {
@@ -47,7 +51,7 @@ function clear() {
  * (-1..1 => screen)
  */
 function toScreen(p) {
-  // -1..1 => 0..2 => 0..1 => 0..width(height)
+  // -1..1 => 0..2 => 0..1 => 0..width (or height)
   return {
     x: ((p.x + 1) / 2) * canvas.width,
     y: (1 - (p.y + 1) / 2) * canvas.height,
@@ -88,7 +92,7 @@ function rotateXZ({ x, y, z }, theta) {
 /** Transform a 3d vertex to a 2d screen projected point */
 function transformVertex(v) {
   const view = rotateXZ(v, angle);
-  const camera = translateZ(view, dz);
+  const camera = translateZ(view, cameraDz);
   const projected = project(camera);
   return projected ? toScreen(projected) : null;
 }
@@ -107,7 +111,9 @@ function frame(time) {
   const dt = (time - lastTime) / 1000;
   lastTime = time;
 
-  angle += Math.PI * 0.125 * dt;
+  angle += Math.PI * 0.25 * dt;
+  angle %= 2 * Math.PI; // clamp in range 0..2pi
+  cameraDz += (dzTarget - cameraDz) * ZOOM_SPEED * dt;
 
   clear();
 
