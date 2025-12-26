@@ -32,4 +32,8 @@ or visit [here](https://nibtr.github.io/3pp)
 
 ## References
 
+Mostly referenced this [video](https://www.youtube.com/watch?v=qjWkNZ0SXfo)
+by Tsoding (thanks), with additional read:
+
 - https://www.cse.unr.edu/~bebis/CS791E/Notes/PerspectiveProjection.pdf
+- https://en.wikipedia.org/wiki/Rotation_matrix
