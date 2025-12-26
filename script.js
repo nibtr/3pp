@@ -1,4 +1,35 @@
-import { vertices, edges } from "./cube.js";
+const MODEL_MAP = {
+  cube: () => import("./models/cube.js"),
+  prism: () => import("./models/prism.js"),
+  penger: () => import("./models/penger.js"),
+};
+
+const currentModel = {
+  vertices: [],
+  edges: [],
+};
+
+const select = document.getElementById("models");
+select.addEventListener("change", async (e) => {
+  const modelName = e.target.value;
+  if (!MODEL_MAP[modelName]) return;
+
+  const module = await MODEL_MAP[modelName]();
+  currentModel.vertices = module.vertices;
+  currentModel.edges = module.edges;
+
+  // reset value
+  dz = 2;
+  targetDz = dz;
+  angleX = 0;
+  angleY = 0;
+});
+
+(async () => {
+  const module = await MODEL_MAP["cube"]();
+  currentModel.vertices = module.vertices;
+  currentModel.edges = module.edges;
+})();
 
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
@@ -160,9 +191,9 @@ function frame(time) {
 
   clear();
 
-  const tvs = scaleVertices(vertices).map(transformVertex);
+  const tvs = scaleVertices(currentModel.vertices).map(transformVertex);
 
-  for (const e of edges) {
+  for (const e of currentModel.edges) {
     for (let i = 0; i < e.length; i++) {
       const a = tvs[e[i]];
       const b = tvs[e[(i + 1) % e.length]];

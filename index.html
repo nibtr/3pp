@@ -15,9 +15,21 @@
       canvas {
         display: block;
       }
+      #options {
+        padding: 16px;
+        font-size: 20px;
+      }
     </style>
   </head>
   <body>
+    <div id="options">
+      <label for="fruits">Choose a model:</label>
+      <select id="models" name="models">
+        <option value="cube">Cube</option>
+        <option value="prism">Hexagonal Prism</option>
+        <option value="penger">Penger</option>
+      </select>
+    </div>
     <canvas></canvas>
     <script type="module" src="script.js"></script>
   </body>
