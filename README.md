@@ -15,6 +15,11 @@ where:
 projection, or the focal length.
 ```
 
+## Features
+
+- Scroll to zoom in/out
+- Drag to rotate
+
 ## References
 
 - https://www.cse.unr.edu/~bebis/CS791E/Notes/PerspectiveProjection.pdf
