@@ -35,7 +35,7 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
 const BACKGROUND = "#000000";
-const FOREGROUND = "#00d7ff";
+const FOREGROUND = "#33CCFF";
 
 /** Field of view, in degree */
 const FOV = (66 * Math.PI) / 180;
