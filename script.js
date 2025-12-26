@@ -11,19 +11,19 @@ const FOV = (66 * Math.PI) / 180;
 const FOCAL_LENGTH = 1 / Math.tan(FOV / 2);
 
 const SCROLL_SENSITIVITY = 0.001;
+const ZOOM_SPEED = 10;
 const MIN_DZ = 0.5;
-const MAX_DZ = 8;
-const ZOOM_SPEED = 5;
+const MAX_DZ = 10;
 const ROTATE_SPEED = 0.005;
 
-let lastTime = 0;
-let angle = 0;
-let cameraDz = 2;
-let dzTarget = cameraDz;
-let isDragging = false;
-let lastMouse = { x: 0, y: 0 };
+let dz = 2;
+let targetDz = dz;
 let angleX = 0; // vertical drag
 let angleY = 0; // horizontal drag
+let lastTime = 0;
+let isDragging = false;
+let lastMouse = { x: 0, y: 0 };
+let shouldAutoRotate = true;
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -34,12 +34,13 @@ window.addEventListener("resize", resize);
 resize();
 
 addEventListener("wheel", (e) => {
-  dzTarget += e.deltaY * SCROLL_SENSITIVITY;
-  dzTarget = Math.min(MAX_DZ, Math.max(MIN_DZ, dzTarget));
+  targetDz += e.deltaY * SCROLL_SENSITIVITY;
+  targetDz = Math.min(MAX_DZ, Math.max(MIN_DZ, targetDz));
 });
 
 canvas.addEventListener("mousedown", (e) => {
   isDragging = true;
+  shouldAutoRotate = false;
   lastMouse = { x: e.clientX, y: e.clientY };
 });
 
@@ -50,16 +51,21 @@ canvas.addEventListener("mousemove", (e) => {
 
   angleX -= dy * ROTATE_SPEED; // vertical drag -> rotate around X
   angleY -= dx * ROTATE_SPEED; // horizontal drag -> rotate around Y
+  // clamp in range 0..2pi
+  angleX %= 2 * Math.PI;
+  angleY %= 2 * Math.PI;
 
   lastMouse = { x: e.clientX, y: e.clientY };
 });
 
 canvas.addEventListener("mouseup", () => {
   isDragging = false;
+  shouldAutoRotate = true;
 });
 
 canvas.addEventListener("mouseleave", () => {
   isDragging = false;
+  shouldAutoRotate = true;
 });
 
 /** Clear the screen */
@@ -118,16 +124,16 @@ function rotateVertex({ x, y, z }) {
 
 /** Transform a 3d vertex to a 2d screen projected point */
 function transformVertex(v) {
-  const view = rotateVertex(v, angle);
-  const camera = translateZ(view, cameraDz);
-  const projected = project(camera);
+  let p = rotateVertex(v);
+  p = translateZ(p, dz);
+  const projected = project(p);
   return toScreen(projected);
 }
 
 /** Draw a line from p1 to p2 */
-function line(p1, p2) {
-  ctx.strokeStyle = FOREGROUND;
-  ctx.lineWidth = 2;
+function line(p1, p2, color = FOREGROUND, width = 3) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
   ctx.beginPath();
   ctx.moveTo(p1.x, p1.y);
   ctx.lineTo(p2.x, p2.y);
@@ -138,9 +144,11 @@ function frame(time) {
   const dt = (time - lastTime) / 1000;
   lastTime = time;
 
-  angle += Math.PI * 0.25 * dt;
-  angle %= 2 * Math.PI; // clamp in range 0..2pi
-  cameraDz += (dzTarget - cameraDz) * ZOOM_SPEED * dt;
+  if (shouldAutoRotate) {
+    angleY += Math.PI * 0.25 * dt;
+    angleY %= 2 * Math.PI;
+  }
+  dz += (targetDz - dz) * ZOOM_SPEED * dt;
 
   clear();
 
