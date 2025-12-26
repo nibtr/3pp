@@ -4,7 +4,7 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
 const BACKGROUND = "#000000";
-const FOREGROUND = "#17ebd9";
+const FOREGROUND = "#009dff";
 
 /** Field of view, in degree */
 const FOV = (66 * Math.PI) / 180;
@@ -14,11 +14,16 @@ const SCROLL_SENSITIVITY = 0.001;
 const MIN_DZ = 0.5;
 const MAX_DZ = 8;
 const ZOOM_SPEED = 5;
+const ROTATE_SPEED = 0.005;
 
 let lastTime = 0;
 let angle = 0;
 let cameraDz = 2;
 let dzTarget = cameraDz;
+let isDragging = false;
+let lastMouse = { x: 0, y: 0 };
+let angleX = 0; // vertical drag
+let angleY = 0; // horizontal drag
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -28,9 +33,33 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-addEventListener("wheel", (event) => {
-  dzTarget += event.deltaY * SCROLL_SENSITIVITY;
+addEventListener("wheel", (e) => {
+  dzTarget += e.deltaY * SCROLL_SENSITIVITY;
   dzTarget = Math.min(MAX_DZ, Math.max(MIN_DZ, dzTarget));
+});
+
+canvas.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  lastMouse = { x: e.clientX, y: e.clientY };
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastMouse.x;
+  const dy = e.clientY - lastMouse.y;
+
+  angleX -= dy * ROTATE_SPEED; // vertical drag -> rotate around X
+  angleY -= dx * ROTATE_SPEED; // horizontal drag -> rotate around Y
+
+  lastMouse = { x: e.clientX, y: e.clientY };
+});
+
+canvas.addEventListener("mouseup", () => {
+  isDragging = false;
+});
+
+canvas.addEventListener("mouseleave", () => {
+  isDragging = false;
 });
 
 /** Clear the screen */
@@ -38,13 +67,6 @@ function clear() {
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
-
-/** Draws the point onto screen */
-// function point({ x, y }) {
-//   const size = 10;
-//   ctx.fillStyle = FOREGROUND;
-//   ctx.fillRect(x - size / 2, y - size / 2, size, size);
-// }
 
 /**
  * Maps the coord of p from normalized Cartesian system to screen coordination system
@@ -61,8 +83,6 @@ function toScreen(p) {
 /** Projects the 3d coordinate to a 2d coordinate */
 function project({ x, y, z }) {
   const aspect = canvas.width / canvas.height;
-
-  if (z <= 0.001) return null; // near camera
   return {
     x: ((x / z) * FOCAL_LENGTH) / aspect,
     y: (y / z) * FOCAL_LENGTH,
@@ -78,23 +98,30 @@ function translateZ({ x, y, z }, dz) {
   };
 }
 
-/** Rotate a point in xz plane */
-function rotateXZ({ x, y, z }, theta) {
-  const c = Math.cos(theta);
-  const s = Math.sin(theta);
-  return {
-    x: x * c - z * s,
-    z: x * s + z * c,
-    y,
-  };
+/** Rotate a point in*/
+function rotateVertex({ x, y, z }) {
+  const cosX = Math.cos(angleX);
+  const sinX = Math.sin(angleX);
+  const cosY = Math.cos(angleY);
+  const sinY = Math.sin(angleY);
+
+  // rotate around X
+  let y1 = y * cosX - z * sinX;
+  let z1 = y * sinX + z * cosX;
+
+  // rotate around Y
+  let x2 = x * cosY + z1 * sinY;
+  let z2 = -x * sinY + z1 * cosY;
+
+  return { x: x2, y: y1, z: z2 };
 }
 
 /** Transform a 3d vertex to a 2d screen projected point */
 function transformVertex(v) {
-  const view = rotateXZ(v, angle);
+  const view = rotateVertex(v, angle);
   const camera = translateZ(view, cameraDz);
   const projected = project(camera);
-  return projected ? toScreen(projected) : null;
+  return toScreen(projected);
 }
 
 /** Draw a line from p1 to p2 */
@@ -123,7 +150,7 @@ function frame(time) {
     for (let i = 0; i < e.length; i++) {
       const a = tvs[e[i]];
       const b = tvs[e[(i + 1) % e.length]];
-      if (a && b) line(a, b);
+      line(a, b);
     }
   }
 
