@@ -2,11 +2,13 @@ const MODEL_MAP = {
   cube: () => import("./models/cube.js"),
   prism: () => import("./models/prism.js"),
   penger: () => import("./models/penger.js"),
+  cloth: () => import("./models/cloth.js"),
 };
 
 const currentModel = {
   vertices: [],
   edges: [],
+  updateVertices: () => {},
 };
 
 const select = document.getElementById("models");
@@ -17,6 +19,7 @@ select.addEventListener("change", async (e) => {
   const module = await MODEL_MAP[modelName]();
   currentModel.vertices = module.vertices;
   currentModel.edges = module.edges;
+  currentModel.updateVertices = module.updateVertices ?? (() => {});
 
   // reset value
   dz = 2;
@@ -55,6 +58,7 @@ let lastTime = 0;
 let isDragging = false;
 let lastMouse = { x: 0, y: 0 };
 let shouldAutoRotate = true;
+let enableAutoRotate = true;
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -99,6 +103,11 @@ canvas.addEventListener("mouseleave", () => {
   shouldAutoRotate = true;
 });
 
+const autoRotateCheckbox = document.getElementById("autoRotate");
+autoRotateCheckbox.addEventListener("change", (e) => {
+  enableAutoRotate = !e.target.checked;
+});
+
 /** Clear the screen */
 function clear() {
   ctx.fillStyle = BACKGROUND;
@@ -119,6 +128,7 @@ function toScreen(p) {
 
 /** Projects the 3d coordinate to a 2d coordinate */
 function project({ x, y, z }) {
+  if (z <= 0.001) return null;
   const aspect = canvas.width / canvas.height;
   return {
     x: ((x / z) * FOCAL_LENGTH) / aspect,
@@ -158,7 +168,7 @@ function transformVertex(v) {
   let p = rotateVertex(v);
   p = translateZ(p, dz);
   const projected = project(p);
-  return toScreen(projected);
+  return projected ? toScreen(projected) : null;
 }
 
 function scaleVertices(vertices, factor = 1) {
@@ -183,12 +193,13 @@ function frame(time) {
   const dt = (time - lastTime) / 1000;
   lastTime = time;
 
-  if (shouldAutoRotate) {
+  if (enableAutoRotate && shouldAutoRotate) {
     angleY += Math.PI * 0.25 * dt;
     angleY %= 2 * Math.PI;
   }
   dz += (targetDz - dz) * ZOOM_SPEED * dt;
 
+  currentModel.updateVertices(time / 1000);
   clear();
 
   const tvs = scaleVertices(currentModel.vertices).map(transformVertex);
@@ -197,7 +208,7 @@ function frame(time) {
     for (let i = 0; i < e.length; i++) {
       const a = tvs[e[i]];
       const b = tvs[e[(i + 1) % e.length]];
-      line(a, b);
+      if (a && b) line(a, b);
     }
   }
 
