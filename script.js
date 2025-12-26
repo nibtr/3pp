@@ -25,7 +25,7 @@ function resize() {
   canvas.height = window.innerHeight;
 }
 
-window.addEventListener("resize", () => resize);
+window.addEventListener("resize", resize);
 resize();
 
 addEventListener("wheel", (event) => {
