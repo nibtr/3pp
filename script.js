@@ -8,7 +8,7 @@ const MODEL_MAP = {
 const currentModel = {
   vertices: [],
   edges: [],
-  updateVertices: () => {},
+  updateVertices: () => { },
 };
 
 const select = document.getElementById("models");
@@ -19,7 +19,7 @@ select.addEventListener("change", async (e) => {
   const module = await MODEL_MAP[modelName]();
   currentModel.vertices = module.vertices;
   currentModel.edges = module.edges;
-  currentModel.updateVertices = module.updateVertices ?? (() => {});
+  currentModel.updateVertices = module.updateVertices ?? (() => { });
 
   // reset value
   dz = 2;
@@ -145,7 +145,7 @@ function translateZ({ x, y, z }, dz) {
   };
 }
 
-/** Rotate a point in*/
+/** Rotate a vertex */
 function rotateVertex({ x, y, z }) {
   const cosX = Math.cos(angleX);
   const sinX = Math.sin(angleX);
@@ -171,6 +171,7 @@ function transformVertex(v) {
   return projected ? toScreen(projected) : null;
 }
 
+/** Scales a vertex by `factor` */
 function scaleVertices(vertices, factor = 1) {
   return vertices.map((v) => ({
     x: v.x * factor,
