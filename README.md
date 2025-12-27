@@ -1,18 +1,17 @@
 # 3pp
 
-Just a very simple example of perspective projection of a 3d model into
-a 2d plane (onto the screen), based on this simple formula:
+A simple example of perspective projection of 3d models onto 
+a 2d plane (onto the screen) for educational purposes.
+
+Derived from this formula:
 
 ```md
-Given a 3d point (x, y, z), we can project it into a 2d plane (x', y') by:
+Given a 3d point (x, y, z), we can project it onto a 2d plane (x', y') by:
 
 x' = xf / z
 y' = yf / z
 
-where:
-
-- f is the distance between the image plane and the center of
-projection, or the focal length.
+where: f is the distance between the image plane and the center of projection.
 ```
 
 ## Features
@@ -33,7 +32,7 @@ or visit [here](https://nibtr.github.io/3pp)
 ## References
 
 Mostly referenced this [video](https://www.youtube.com/watch?v=qjWkNZ0SXfo)
-by Tsoding (thanks), with additional read:
+by Tsoding, with additional read:
 
 - https://www.cse.unr.edu/~bebis/CS791E/Notes/PerspectiveProjection.pdf
 - https://en.wikipedia.org/wiki/Rotation_matrix
